@@ -1,0 +1,29 @@
+[
+  {
+    "firstName": "Nathan",
+    "lastName": "Pham",
+    "birthday": "11/26/2002",
+    "yearMet": 2020,
+    "phoneNumber": "714-325-8466",
+    "email": null,
+    "location": "Los Angeles"
+  },
+  {
+    "firstName": "Arushi",
+    "lastName": "Sharma",
+    "birthday": "08/21/2002",
+    "yearMet": 2016,
+    "phoneNumber": "510-474-2028",
+    "email": null,
+    "location": "Fremont"
+  },
+  {
+    "firstName": "Rupal",
+    "lastName": "Shah",
+    "birthday": "11/29/1973",
+    "yearMet": 2002,
+    "phoneNumber": "240-434-5481",
+    "email": null,
+    "location": "Leonardtown, Maryland"
+  }
+]
