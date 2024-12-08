@@ -4,6 +4,8 @@ Welcome to  Atlas, _designed to take the world off of your shoulders_.
 
 This project is a personal assistant application designed to automate and streamline various aspects of my daily life. It currently reminds you about birthdays by sending messages via Slack and is planned to include additional features such as budget updates, monthly birthday summaries, and an endpoint for transcribing journal entries using the OpenAI Whisper API.
 
+![ezgif-2-de8c0f962e](https://github.com/user-attachments/assets/5f42bf35-c4e8-4cdd-ae38-3a23345191f0)
+
 ## Features
 
 - **Daily Birthday Reminders**: Sends you a personalized message every morning with a list of friends whose birthdays are today.
@@ -18,15 +20,3 @@ This project is a personal assistant application designed to automate and stream
 - **SQLite** with **Sequelize ORM**: Utilizes SQLite for a lightweight relational database solution, managed through Sequelize for easy data modeling and queries.
 - **Slack API**: Integrates with Slack to send you messages directly to your preferred channel.
 - **Logging**: Implements logging using `winston` for robust and flexible logging capabilities.
-
-## License
-
-This project is licensed under the MIT License.
-
-## Contact
-
-For questions or support, please contact [your.email@example.com](mailto:your.email@example.com).
-
----
-
-Thank you for using this personal assistant service! Your feedback and contributions are highly appreciated.
