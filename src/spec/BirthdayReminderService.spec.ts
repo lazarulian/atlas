@@ -1,48 +1,41 @@
 import { getBirthdayReport } from "../services/BirthdayReminderService";
 import { PeopleAttributes } from "../types/models/PeopleInterface";
+import { createPerson } from "../utils/ModelService";
 
 describe("getBirthdayReport", () => {
   const people: PeopleAttributes[] = [
-    {
+    createPerson({
       id: 1,
-      firstName: "Daenerys",
-      lastName: "Targaryen",
+      name: "Daenerys Targaryen",
       birthday: new Date("1995-11-28"),
       yearMet: 2015,
       phoneNumber: "123-456-7890",
-      email: "",
-      location: "Westeros",
-    },
-    {
+      location: ["Westeros"],
+    }),
+    createPerson({
       id: 2,
-      firstName: "Omar",
-      lastName: "Little",
+      name: "Omar Little",
       birthday: new Date("1990-11-28"),
       yearMet: 2018,
       phoneNumber: "987-654-3210",
-      email: "",
-      location: "Baltimore",
-    },
-    {
+      location: ["Baltimore"],
+    }),
+    createPerson({
       id: 3,
-      firstName: "Frank",
-      lastName: "Ocean",
+      name: "Frank Ocean",
       birthday: new Date("1985-06-15"),
       yearMet: 2010,
       phoneNumber: "555-555-5555",
-      email: "",
-      location: "",
-    },
-    {
+    }),
+    createPerson({
       id: 4,
-      firstName: "Daniel",
-      lastName: "Caesar",
+      name: "Daniel Caesar",
       birthday: new Date("1992-02-29"),
       yearMet: 2012,
       phoneNumber: "444-444-4444",
       email: "daniel@example.com",
-      location: "City D",
-    },
+      location: ["Toronto", "London"],
+    }),
   ];
 
   beforeEach(() => {
@@ -62,11 +55,11 @@ describe("getBirthdayReport", () => {
 
     expect(reports).toEqual([
       {
-        fullName: "Daenerys Targaryen",
+        name: "Daenerys Targaryen",
         yearsInContact: 9, // 2024 - 2015
       },
       {
-        fullName: "Omar Little",
+        name: "Omar Little",
         yearsInContact: 6, // 2024 - 2018
       },
     ]);
@@ -81,7 +74,7 @@ describe("getBirthdayReport", () => {
 
     expect(reports).toEqual([
       {
-        fullName: "Frank Ocean",
+        name: "Frank Ocean",
         yearsInContact: 14, // 2024 - 2010
       },
     ]);
@@ -116,7 +109,7 @@ describe("getBirthdayReport", () => {
 
     expect(reports).toEqual([
       {
-        fullName: "Daniel Caesar",
+        name: "Daniel Caesar",
         yearsInContact: 12, // 2024 - 2012
       },
     ]);
@@ -130,11 +123,11 @@ describe("getBirthdayReport", () => {
 
     expect(reports).toEqual([
       {
-        fullName: "Daenerys Targaryen",
+        name: "Daenerys Targaryen",
         yearsInContact: 9, // 2024 - 2015
       },
       {
-        fullName: "Omar Little",
+        name: "Omar Little",
         yearsInContact: 6, // 2024 - 2018
       },
     ]);

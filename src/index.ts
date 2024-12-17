@@ -4,6 +4,7 @@ import express from "express";
 import logger from "./config/logger";
 import "./jobs/DailyUpdates";
 import "./services/SlackService";
+import "./services/NotionService";
 import routes from "./routes";
 import peopleRoutes from "./routes/people";
 

@@ -1,12 +1,16 @@
 export interface PeopleAttributes {
   id: number;
-  firstName: string;
-  lastName: string;
-  birthday: Date;
+  name: string;
+  active: boolean;
+  birthday?: Date;
   yearMet: number;
   phoneNumber: string;
   email?: string;
-  location?: string;
+  location?: string[];
+  affiliation?: string[];
+  lastContacted: Date;
+  contactFrequency: number;
+  chatReminder: number;
 }
 
 export type Profile = Omit<PeopleAttributes, "id">;

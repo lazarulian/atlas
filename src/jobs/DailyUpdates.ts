@@ -2,6 +2,7 @@ import schedule from "node-schedule";
 import logger from "../config/logger";
 import SlackService from "../services/SlackService";
 import generateBirthdayReport from "../services/BirthdayReminderService";
+import ProfileUpdateService from "../services/ProfileUpdateService";
 
 /**
  * Executes daily updates: generates a birthday report and sends it to Slack.
@@ -13,11 +14,15 @@ async function executeDailyUpdates(): Promise<void> {
     const slackService = SlackService.getInstance();
     logger.debug("Slack Service initialized.");
 
-    // Generate Birthday Report
+    // Update DB
+    const profileUpdateService = new ProfileUpdateService();
+    await profileUpdateService.syncProfilesFromNotion();
+
+    // Reach out To
+
+    // Birthday Report
     const birthdayReport = await generateBirthdayReport();
     logger.debug("Birthday report generated.");
-
-    // Send Report to Slack
     await slackService.postMessage("daily-updates", birthdayReport);
     logger.info("Birthday report successfully sent to Slack.");
   } catch (error: any) {

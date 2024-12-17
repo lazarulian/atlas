@@ -1,4 +1,4 @@
 export type BirthdayReport = {
-  fullName: string;
+  name: string;
   yearsInContact: number;
 };
