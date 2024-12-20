@@ -27,6 +27,7 @@ export async function generateBirthdayReport(): Promise<string> {
     }
 
     const birthdayReports = getBirthdayReport(contacts);
+    console.log(birthdayReports);
     const birthdayMessage = formatBirthdayMessage(birthdayReports);
 
     return birthdayMessage;
@@ -69,18 +70,22 @@ function formatBirthdayMessage(reports: BirthdayReport[]): string {
  */
 function getBirthdayReport(people: PeopleAttributes[]): BirthdayReport[] {
   const today = new Date();
+  const todayMonth = today.getMonth();
+  const todayDate = today.getDate();
 
   return people
     .filter((person) => {
       if (!person.birthday) return false;
+
       const birthday = new Date(person.birthday);
+
       return (
-        birthday.getDate() === today.getDate() &&
-        birthday.getMonth() === today.getMonth()
+        birthday.getUTCDate() === todayDate &&
+        birthday.getUTCMonth() === todayMonth
       );
     })
     .map((person) => ({
-      name: person.name, // Using `name` field
+      name: person.name,
       yearsInContact: today.getFullYear() - person.yearMet,
     }));
 }
