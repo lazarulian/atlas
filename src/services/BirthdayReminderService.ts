@@ -145,6 +145,7 @@ function formatBirthdayMessage(
  */
 function getBirthdayReport(people: PeopleAttributes[]): BirthdayReport[] {
   const today = new Date();
+  
   // Build today's local MM-DD string (using local date, as the report is for "today").
   const localMonth = (today.getMonth() + 1).toString().padStart(2, "0");
   const localDay = today.getDate().toString().padStart(2, "0");
