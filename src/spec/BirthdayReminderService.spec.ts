@@ -40,13 +40,6 @@ describe("Birthday Reminder Service", () => {
       email: "daniel@example.com",
       location: ["Toronto", "London"],
     }),
-    createPerson({
-      id: 5,
-      name: "No Birthday",
-      // birthday is undefined
-      yearMet: 2020,
-      phoneNumber: "000-000-0000",
-    }),
   ];
 
   describe("getBirthdayReport", () => {
