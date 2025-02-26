@@ -5,30 +5,28 @@ import generateBirthdayReport from "../services/BirthdayReminderService";
 import ProfileUpdateService from "../services/ProfileUpdateService";
 
 /**
- * Executes daily updates: generates a birthday report and sends it to Slack.
+ * Executes monthly updates: generates a birthday report and sends it to Slack.
  */
-async function executeDailyUpdates(
-  slackChannel: string = "daily-updates"
+async function executeMonthlyUpdates(
+  slackChannel: string = "monthly-updates"
 ): Promise<void> {
-  logger.info("Starting daily updates...");
+  logger.info("Starting monthly updates...");
 
   try {
     const slackService = SlackService.getInstance();
     logger.debug("Slack Service initialized.");
 
-    // Update DB
+    // Update the database
     const profileUpdateService = new ProfileUpdateService();
     await profileUpdateService.syncProfilesFromNotion();
 
-    // Reach out To
-
-    // Birthday Report
-    const birthdayReport = await generateBirthdayReport();
+    // Generate the Birthday Report
+    const birthdayReport = await generateBirthdayReport("monthly");
     logger.debug("Birthday report generated.");
     await slackService.postMessage(slackChannel, birthdayReport);
     logger.info("Birthday report successfully sent to Slack.");
   } catch (error: any) {
-    logger.error("Error during daily updates:", {
+    logger.error("Error during monthly updates:", {
       message: error.message,
       stack: error.stack,
       ...error,
@@ -36,16 +34,18 @@ async function executeDailyUpdates(
   }
 }
 
-// Schedule the task to run daily at 9:00 AM
-schedule.scheduleJob("0 5 * * *", () => executeDailyUpdates());
-logger.info("Scheduled daily updates job to run every day at 5:00 AM.");
+// Schedule the monthly job to run on the 1st day of each month at 5:00 AM
+schedule.scheduleJob("0 5 1 * *", () => executeMonthlyUpdates());
+logger.info(
+  "Scheduled monthly updates job to run every first day of the month at 5:00 AM."
+);
 
-// Add a test entry point for manual execution
+// Add a test entry point for manual execution of monthly updates
 if (require.main === module) {
   (async () => {
-    logger.info("Executing daily updates manually...");
-    await executeDailyUpdates();
+    logger.info("Executing monthly updates manually...");
+    await executeMonthlyUpdates();
   })();
 }
 
-export default executeDailyUpdates;
+export default executeMonthlyUpdates;

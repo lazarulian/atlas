@@ -15,7 +15,7 @@ export class People
   public id!: number;
   public name!: string;
   public active!: boolean;
-  public birthday?: Date;
+  public birthday!: Date;
   public yearMet!: number;
   public phoneNumber!: string;
   public email?: string;
@@ -47,7 +47,6 @@ People.init(
     },
     birthday: {
       type: DataTypes.DATE,
-      allowNull: true,
     },
     yearMet: {
       type: DataTypes.INTEGER,

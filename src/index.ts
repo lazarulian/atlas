@@ -3,10 +3,13 @@ dotenv.config();
 import express from "express";
 import logger from "./config/logger";
 import "./jobs/DailyUpdates";
+import "./jobs/MonthlyUpdates";
 import "./services/SlackService";
 import "./services/NotionService";
 import routes from "./routes";
-import peopleRoutes from "./routes/people";
+import softUpdateRoutes from "./routes/soft/updates";
+import updateRoutes from "./routes/updates";
+process.env.TZ = "America/Los_Angeles";
 
 const app = express();
 
@@ -20,7 +23,8 @@ app.use(express.json());
 
 // Use the modular routes
 app.use("/", routes);
-app.use("/people", peopleRoutes);
+app.use("/soft/updates", softUpdateRoutes);
+app.use("/updates", updateRoutes);
 
 const PORT = 4000;
 

@@ -2,7 +2,7 @@ export interface PeopleAttributes {
   id: number;
   name: string;
   active: boolean;
-  birthday?: Date;
+  birthday: Date;
   yearMet: number;
   phoneNumber: string;
   email?: string;
