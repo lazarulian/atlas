@@ -38,7 +38,7 @@ async function executeDailyUpdates(
 
 // Schedule the task to run daily at 9:00 AM
 schedule.scheduleJob("0 5 * * *", () => executeDailyUpdates());
-logger.info("Scheduled daily updates job to run every day at 9:00 AM.");
+logger.info("Scheduled daily updates job to run every day at 5:00 AM.");
 
 // Add a test entry point for manual execution
 if (require.main === module) {

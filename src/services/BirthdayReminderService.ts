@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import { format } from "date-fns";
-
 import logger from "../config/logger";
 import { People } from "../models/People";
 import { PeopleAttributes } from "../types/models/PeopleInterface";
@@ -11,7 +10,9 @@ import { BirthdayReport } from "../types/services/BirthdayReminder";
  * Generates the birthday report message to be sent via Slack.
  * @returns {Promise<string>} The formatted birthday message.
  */
-export async function generateBirthdayReport(): Promise<string> {
+export async function generateBirthdayReport(
+  type: string = "daily"
+): Promise<string> {
   try {
     logger.info("Generating Birthday Report...");
 
@@ -29,10 +30,19 @@ export async function generateBirthdayReport(): Promise<string> {
     const birthdayReports = getBirthdayReport(contacts);
     const monthlyBirthdays = getMonthlyBirthdays(contacts);
     const upcomingBirthdays = getUpcomingBirthdays(contacts);
-    const birthdayMessage = formatBirthdayMessage(
-      birthdayReports,
-      upcomingBirthdays
-    );
+
+    let birthdayMessage;
+    if (type == "daily") {
+      birthdayMessage = formatBirthdayMessage(
+        birthdayReports,
+        upcomingBirthdays
+      );
+    } else {
+      birthdayMessage = formatBirthdayMessage(
+        monthlyBirthdays,
+        upcomingBirthdays
+      );
+    }
 
     return birthdayMessage;
   } catch (error) {
@@ -43,7 +53,7 @@ export async function generateBirthdayReport(): Promise<string> {
 
 /**
  * Formats the birthday message to be sent.
- * @param {BirthdayReport[]} reports - The report of birthdays in the current month.
+ * @param {BirthdayReport[]} reports - The report for birthdays in the current month.
  * @param {BirthdayReport[]} nextBirthdayReports - The report for the next upcoming birthday.
  * @returns {string} The formatted birthday message.
  */
@@ -70,7 +80,7 @@ function formatBirthdayMessage(
     message += `\n${birthdayList}\n`;
     message += `\nPlease make sure to wish them a happy birthday 🎂\n`;
   } else {
-    message += `\nNo birthdays.!\n`;
+    message += `\nNo birthdays found!\n`;
   }
 
   if (nextBirthdayReports.length > 0) {
@@ -105,12 +115,12 @@ function getBirthdayReport(people: PeopleAttributes[]): BirthdayReport[] {
 
   return people
     .filter((person) => {
-      if (!person.birthday) return false;
-      // Convert birthday to a Date.
+      // Exclude persons with no valid birthday.
+      if (!person.birthday || person.name === "No Birthday") return false;
       const bd =
         person.birthday instanceof Date
           ? person.birthday
-          : new Date(person.birthday!);
+          : new Date(person.birthday);
       const bdStr = bd.toISOString().substring(5, 10); // e.g., "02-26"
       return bdStr === todayLocal;
     })
@@ -120,7 +130,7 @@ function getBirthdayReport(people: PeopleAttributes[]): BirthdayReport[] {
       birthday:
         person.birthday instanceof Date
           ? person.birthday
-          : new Date(person.birthday!),
+          : new Date(person.birthday),
     }));
 }
 
@@ -136,11 +146,11 @@ function getMonthlyBirthdays(people: PeopleAttributes[]): BirthdayReport[] {
 
   return people
     .filter((person) => {
-      if (!person.birthday) return false;
+      if (!person.birthday || person.name === "No Birthday") return false;
       const bd =
         person.birthday instanceof Date
           ? person.birthday
-          : new Date(person.birthday!);
+          : new Date(person.birthday);
       const bdMonth = bd.toISOString().substring(5, 7); // e.g., "02"
       return bdMonth === currentMonth;
     })
@@ -150,7 +160,7 @@ function getMonthlyBirthdays(people: PeopleAttributes[]): BirthdayReport[] {
       birthday:
         person.birthday instanceof Date
           ? person.birthday
-          : new Date(person.birthday!),
+          : new Date(person.birthday),
     }));
 }
 
@@ -170,11 +180,11 @@ function getUpcomingBirthdays(people: PeopleAttributes[]): BirthdayReport[] {
   let minCandidateNum = Infinity;
 
   for (const person of people) {
-    if (!person.birthday) continue;
+    if (!person.birthday || person.name === "No Birthday") continue;
     const bd =
       person.birthday instanceof Date
         ? person.birthday
-        : new Date(person.birthday!);
+        : new Date(person.birthday);
     const bdStr = bd.toISOString().substring(5, 10); // e.g., "02-26"
     const [monthStr, dayStr] = bdStr.split("-");
     const month = parseInt(monthStr, 10);
@@ -201,11 +211,11 @@ function getUpcomingBirthdays(people: PeopleAttributes[]): BirthdayReport[] {
 
   return people
     .filter((person) => {
-      if (!person.birthday) return false;
+      if (!person.birthday || person.name === "No Birthday") return false;
       const bd =
         person.birthday instanceof Date
           ? person.birthday
-          : new Date(person.birthday!);
+          : new Date(person.birthday);
       return bd.toISOString().substring(5, 10) === upcoming;
     })
     .map((person) => ({
@@ -214,7 +224,7 @@ function getUpcomingBirthdays(people: PeopleAttributes[]): BirthdayReport[] {
       birthday:
         person.birthday instanceof Date
           ? person.birthday
-          : new Date(person.birthday!),
+          : new Date(person.birthday),
     }));
 }
 

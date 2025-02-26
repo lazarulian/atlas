@@ -72,7 +72,7 @@ class ProfileUpdateService {
     const active = props["Active?"]?.checkbox ?? true;
 
     const birthdayStr = props["Birthday"]?.date?.start;
-    const birthday = birthdayStr ? new Date(birthdayStr) : undefined;
+    const birthday = new Date(birthdayStr);
 
     const yearMet = props["YearMet"]?.number;
     if (typeof yearMet !== "number") {

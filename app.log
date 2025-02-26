@@ -1556,3 +1556,87 @@
 2025-02-25 20:38:12 [[32minfo[39m]: Scheduled daily updates job to run every day at 9:00 AM.
 2025-02-25 20:38:12 [[34mdebug[39m]: Server running on http://localhost:4000
 2025-02-25 20:38:13 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:41:51 [[32minfo[39m]: Scheduled daily updates job to run every day at 9:00 AM.
+2025-02-25 20:41:51 [[34mdebug[39m]: Server running on http://localhost:4000
+2025-02-25 20:41:53 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:41:58 [[34mdebug[39m]: Request from IP: 127.0.0.1
+2025-02-25 20:41:58 [[32minfo[39m]: Starting daily updates...
+2025-02-25 20:41:58 [[34mdebug[39m]: Slack Service initialized.
+2025-02-25 20:41:59 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:41:59 [[32minfo[39m]: Generating Birthday Report...
+2025-02-25 20:41:59 [[34mdebug[39m]: Fetching contacts...
+2025-02-25 20:41:59 [[34mdebug[39m]: Birthday report generated.
+2025-02-25 20:41:59 [[32minfo[39m]: Message successfully posted to api-testing: 1740544919.503669
+2025-02-25 20:41:59 [[32minfo[39m]: Birthday report successfully sent to Slack.
+2025-02-25 20:42:23 [[32minfo[39m]: Scheduled daily updates job to run every day at 9:00 AM.
+2025-02-25 20:42:23 [[34mdebug[39m]: Server running on http://localhost:4000
+2025-02-25 20:42:24 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:42:24 [[34mdebug[39m]: Request from IP: 127.0.0.1
+2025-02-25 20:42:24 [[32minfo[39m]: Starting daily updates...
+2025-02-25 20:42:24 [[34mdebug[39m]: Slack Service initialized.
+2025-02-25 20:42:25 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:42:25 [[32minfo[39m]: Generating Birthday Report...
+2025-02-25 20:42:25 [[34mdebug[39m]: Fetching contacts...
+2025-02-25 20:42:25 [[34mdebug[39m]: Birthday report generated.
+2025-02-25 20:42:25 [[32minfo[39m]: Message successfully posted to api-testing: 1740544945.706479
+2025-02-25 20:42:25 [[32minfo[39m]: Birthday report successfully sent to Slack.
+2025-02-25 20:42:40 [[32minfo[39m]: Scheduled daily updates job to run every day at 9:00 AM.
+2025-02-25 20:42:40 [[34mdebug[39m]: Server running on http://localhost:4000
+2025-02-25 20:42:41 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:42:44 [[34mdebug[39m]: Request from IP: 127.0.0.1
+2025-02-25 20:42:44 [[32minfo[39m]: Starting daily updates...
+2025-02-25 20:42:44 [[34mdebug[39m]: Slack Service initialized.
+2025-02-25 20:42:45 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:42:45 [[32minfo[39m]: Generating Birthday Report...
+2025-02-25 20:42:45 [[34mdebug[39m]: Fetching contacts...
+2025-02-25 20:42:45 [[34mdebug[39m]: Birthday report generated.
+2025-02-25 20:42:45 [[32minfo[39m]: Message successfully posted to api-testing: 1740544965.560709
+2025-02-25 20:42:45 [[32minfo[39m]: Birthday report successfully sent to Slack.
+2025-02-25 20:52:37 [[32minfo[39m]: Scheduled daily updates job to run every day at 5:00 AM.
+2025-02-25 20:52:37 [[32minfo[39m]: Scheduled monthly updates job to run every first day of the month at 5:00 AM.
+2025-02-25 20:52:37 [[34mdebug[39m]: Server running on http://localhost:4000
+2025-02-25 20:52:38 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:52:43 [[34mdebug[39m]: Request from IP: 127.0.0.1
+2025-02-25 20:52:43 [[32minfo[39m]: Starting monthly updates...
+2025-02-25 20:52:43 [[34mdebug[39m]: Slack Service initialized.
+2025-02-25 20:52:44 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:52:44 [[32minfo[39m]: Generating Birthday Report...
+2025-02-25 20:52:44 [[34mdebug[39m]: Fetching contacts...
+2025-02-25 20:52:44 [[34mdebug[39m]: Birthday report generated.
+2025-02-25 20:52:45 [[32minfo[39m]: Message successfully posted to api-testing: 1740545565.027379
+2025-02-25 20:52:45 [[32minfo[39m]: Birthday report successfully sent to Slack.
+2025-02-25 20:53:00 [[34mdebug[39m]: Request from IP: 127.0.0.1
+2025-02-25 20:53:00 [[32minfo[39m]: Starting daily updates...
+2025-02-25 20:53:00 [[34mdebug[39m]: Slack Service initialized.
+2025-02-25 20:53:01 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:53:01 [[32minfo[39m]: Generating Birthday Report...
+2025-02-25 20:53:01 [[34mdebug[39m]: Fetching contacts...
+2025-02-25 20:53:01 [[34mdebug[39m]: Birthday report generated.
+2025-02-25 20:53:01 [[32minfo[39m]: Message successfully posted to api-testing: 1740545581.671299
+2025-02-25 20:53:01 [[32minfo[39m]: Birthday report successfully sent to Slack.
+2025-02-25 20:54:42 [[32minfo[39m]: Scheduled daily updates job to run every day at 5:00 AM.
+2025-02-25 20:54:42 [[32minfo[39m]: Scheduled monthly updates job to run every first day of the month at 5:00 AM.
+2025-02-25 20:54:42 [[34mdebug[39m]: Server running on http://localhost:4000
+2025-02-25 20:54:43 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:54:49 [[34mdebug[39m]: Request from IP: 127.0.0.1
+2025-02-25 20:54:49 [[32minfo[39m]: Starting daily updates...
+2025-02-25 20:54:49 [[34mdebug[39m]: Slack Service initialized.
+2025-02-25 20:54:50 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:54:50 [[32minfo[39m]: Generating Birthday Report...
+2025-02-25 20:54:50 [[34mdebug[39m]: Fetching contacts...
+2025-02-25 20:54:50 [[34mdebug[39m]: Birthday report generated.
+2025-02-25 20:54:50 [[32minfo[39m]: Message successfully posted to api-testing: 1740545690.315949
+2025-02-25 20:54:50 [[32minfo[39m]: Birthday report successfully sent to Slack.
+2025-02-25 20:54:56 [[34mdebug[39m]: Request from IP: 127.0.0.1
+2025-02-25 20:54:56 [[32minfo[39m]: Starting monthly updates...
+2025-02-25 20:54:56 [[34mdebug[39m]: Slack Service initialized.
+2025-02-25 20:54:57 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
+2025-02-25 20:54:57 [[32minfo[39m]: Generating Birthday Report...
+2025-02-25 20:54:57 [[34mdebug[39m]: Fetching contacts...
+2025-02-25 20:54:57 [[34mdebug[39m]: Birthday report generated.
+2025-02-25 20:54:57 [[32minfo[39m]: Message successfully posted to api-testing: 1740545697.650209
+2025-02-25 20:54:57 [[32minfo[39m]: Birthday report successfully sent to Slack.
+2025-02-25 20:56:09 [[32minfo[39m]: Scheduled daily updates job to run every day at 5:00 AM.
+2025-02-25 20:56:09 [[32minfo[39m]: Scheduled monthly updates job to run every first day of the month at 5:00 AM.
+2025-02-25 20:56:09 [[34mdebug[39m]: Server running on http://localhost:4000
+2025-02-25 20:56:10 [[32minfo[39m]: Successfully synced profiles from Notion to the database.
