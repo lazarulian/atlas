@@ -6,7 +6,8 @@ import "./jobs/DailyUpdates";
 import "./services/SlackService";
 import "./services/NotionService";
 import routes from "./routes";
-import peopleRoutes from "./routes/people";
+import updateRoutes from "./routes/soft/updates";
+process.env.TZ = "America/Los_Angeles";
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use(express.json());
 
 // Use the modular routes
 app.use("/", routes);
-app.use("/people", peopleRoutes);
+app.use("/soft/updates", updateRoutes);
 
 const PORT = 4000;
 
