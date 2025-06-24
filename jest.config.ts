@@ -9,4 +9,10 @@ export default {
     "^services/(.*)$": "<rootDir>/services/$1",
     "^types/(.*)$": "<rootDir>/types/$1",
   },
+  setupFilesAfterEnv: ["<rootDir>/spec/setup.ts"],
+  transform: {
+    "^.+\\.(ts|tsx)$": ["ts-jest", {
+      useESM: false,
+    }],
+  },
 };

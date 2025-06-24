@@ -5,61 +5,75 @@ import { PeopleAttributes } from "../types/models/PeopleInterface";
 import { BirthdayReport } from "../types/services/BirthdayReminder";
 
 /**
- * Generates the birthday report message to be sent via Slack.
- * @param type - "daily" for birthdays today, otherwise monthly.
- * @returns {Promise<string>} The formatted birthday message.
+ * Generates birthday reports based on the specified type
+ * @param type - "daily", "monthly", "upcoming", or "all"
+ * @returns Promise<BirthdayReport[]> The birthday reports
  */
-export async function generateBirthdayReport(
-  type: string = "daily"
-): Promise<string> {
+export async function getBirthdayReports(
+  type: "daily" | "monthly" | "upcoming"
+): Promise<BirthdayReport[]> {
   try {
-    logger.info("Generating Birthday Report...");
+    logger.info(`Generating ${type} birthday reports...`);
 
-    // Fetch contacts from the database.
-    logger.debug("Fetching contacts...");
-    const contacts = (await People.findAll({
-      raw: true,
-    })) as PeopleAttributes[];
-    logger.debug(`Fetched ${contacts.length} contacts.`);
-
+    const contacts = await fetchContacts();
     if (contacts.length === 0) {
       logger.info("No contacts found in the database.");
-      return formatBirthdayMessage([], []);
+      return [];
     }
 
-    const birthdayReports = getBirthdayReport(contacts);
-    const monthlyBirthdays = getMonthlyBirthdays(contacts);
-    const upcomingBirthdays = getUpcomingBirthdays(contacts);
-
-    const reportsToUse = type === "daily" ? birthdayReports : monthlyBirthdays;
-    const birthdayMessage = formatBirthdayMessage(
-      reportsToUse,
-      upcomingBirthdays
-    );
-    logger.debug("Formatted birthday message generated.");
-
-    return birthdayMessage;
+    switch (type) {
+      case "daily":
+        return getBirthdayReport(contacts);
+      case "monthly":
+        return getMonthlyBirthdays(contacts);
+      case "upcoming":
+        return getUpcomingBirthdays(contacts);
+      default:
+        throw new Error(`Invalid report type: ${type}`);
+    }
   } catch (error) {
-    logger.error("Error in generating Birthday Report:", error);
+    logger.error(`Error generating ${type} birthday reports:`, error);
     throw error;
   }
 }
 
 /**
- * Formats a birthday so that it displays the intended calendar date.
- * Instead of using Date arithmetic (which applies local time zone offsets),
- * this function extracts the "YYYY-MM-DD" portion from the stored ISO string
- * and then formats that string directly.
- *
- * @param birthday - The birthday Date.
- * @returns The formatted birthday string (e.g., "February 26").
+ * Generates a formatted birthday message for Slack
+ * @param type - "daily", "monthly", "upcoming", or "all"
+ * @returns Promise<string> The formatted Slack message
+ */
+export async function generateBirthdayMessage(
+  type: "daily" | "monthly" | "upcoming"
+): Promise<string> {
+  try {
+    const reports = await getBirthdayReports(type);
+    return formatBirthdayMessageForSlack(reports, type);
+  } catch (error) {
+    logger.error(`Error generating ${type} birthday message:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches all contacts from the database
+ * @returns Promise<PeopleAttributes[]> The contacts
+ */
+async function fetchContacts(): Promise<PeopleAttributes[]> {
+  logger.debug("Fetching contacts...");
+  const contacts = (await People.findAll({ raw: true })) as PeopleAttributes[];
+  logger.debug(`Fetched ${contacts.length} contacts.`);
+  return contacts;
+}
+
+/**
+ * Formats a birthday date for display
+ * @param birthday - The birthday Date object
+ * @returns The formatted birthday string (e.g., "February 26")
  */
 function formatBirthdayDate(birthday: Date): string {
   try {
-    // Get the stored date string in YYYY-MM-DD format.
-    const iso = birthday.toISOString(); // e.g., "2002-02-26T00:00:00.000Z"
-    const datePart = iso.substring(0, 10); // "2002-02-26"
-    // Split the date part.
+    const iso = birthday.toISOString();
+    const datePart = iso.substring(0, 10);
     const [year, month, day] = datePart.split("-");
     const monthNames = [
       "January",
@@ -75,11 +89,7 @@ function formatBirthdayDate(birthday: Date): string {
       "November",
       "December",
     ];
-    const formatted = `${monthNames[parseInt(month, 10) - 1]} ${parseInt(
-      day,
-      10
-    )}`;
-    return formatted;
+    return `${monthNames[parseInt(month, 10) - 1]} ${parseInt(day, 10)}`;
   } catch (error) {
     logger.error("Error in formatBirthdayDate:", error);
     return "N/A";
@@ -87,169 +97,151 @@ function formatBirthdayDate(birthday: Date): string {
 }
 
 /**
- * Formats the birthday message to be sent.
- * @param reports - The report for birthdays (today or this month).
- * @param nextBirthdayReports - The report for the next upcoming birthday.
- * @returns The formatted birthday message.
+ * Formats birthday reports into a Slack-friendly message
+ * @param reports - The birthday reports
+ * @param type - The type of report
+ * @returns The formatted Slack message
  */
-function formatBirthdayMessage(
+function formatBirthdayMessageForSlack(
   reports: BirthdayReport[],
-  nextBirthdayReports: BirthdayReport[]
+  type: "daily" | "monthly" | "upcoming"
 ): string {
   const timestamp = format(new Date(), "PPpp");
-  let message = `*🎉 Birthday Report 🎉*\n`;
+
+  const config = getMessageConfig(type);
+  let message = `${config.header}\n`;
   message += `*Report Generated:* ${timestamp}\n\n`;
 
-  // Section: Birthdays (Today/This Month)
-  if (reports.length > 0) {
-    // Determine header label based on type.
-    const headerLabel =
-      reports.length === getBirthdayReport([]).length ? "Today" : "This Month";
-    message += `*Birthdays ${headerLabel}:*\n`;
-    const list = reports.map((report, index) => {
-      const bdFormatted = report.birthday
-        ? formatBirthdayDate(new Date(report.birthday))
-        : "N/A";
-      return `> ${index + 1}. *${report.name}* – Friends for ${
-        report.yearsInContact
-      } years (Birthday: ${bdFormatted})`;
-    });
-    message +=
-      list.join("\n") + "\n\n*Don't forget to send your wishes!* 🎂\n\n";
+  if (reports.length === 0) {
+    message += config.emptyMessage;
   } else {
-    message += `*No birthdays found.*\n\n`;
+    message += `*${config.sectionTitle}:*\n`;
+
+    const formattedReports = reports.map((report, index) => {
+      const bdFormatted = report.birthday
+        ? formatBirthdayDate(report.birthday)
+        : "N/A";
+      const yearsText =
+        report.yearsInContact > 0
+          ? ` – Friends for ${report.yearsInContact} years`
+          : " – New connection this year";
+      return `> ${index + 1}. *${
+        report.name
+      }*${yearsText} (Birthday: ${bdFormatted})`;
+    });
+
+    message += formattedReports.join("\n") + "\n\n";
+    message += config.callToAction;
   }
 
-  // Section: Upcoming Birthday(s)
-  if (nextBirthdayReports.length > 0) {
-    const nextBdFormatted = nextBirthdayReports[0].birthday
-      ? formatBirthdayDate(new Date(nextBirthdayReports[0].birthday))
-      : "N/A";
-    message += `*Upcoming Birthday: ${nextBdFormatted}*\n`;
-    const upcomingList = nextBirthdayReports.map(
-      (report) => `> *${report.name}*`
-    );
-    message += upcomingList.join("\n") + "\n\n*Get ready to celebrate!* 🎁\n\n";
-  }
+  message += `\n\n_Generated at: ${timestamp}_`;
 
-  message += `_Collected at: ${timestamp}_\n`;
-  logger.debug(`Final formatted message: ${message}`);
+  logger.debug(`Formatted ${type} message generated`);
   return message;
 }
 
 /**
- * Generates a report of people whose birthdays are today.
- * Compares the stored birthday’s MM-DD (from its ISO string) with today's local MM-DD.
- * @param people - The list of people.
- * @returns The birthday reports.
+ * Gets message configuration based on report type
+ * @param type - The report type
+ * @returns The message configuration
+ */
+function getMessageConfig(type: "daily" | "monthly" | "upcoming") {
+  const configs = {
+    daily: {
+      header: "*🎉 Daily Birthday Report 🎉*",
+      sectionTitle: "Birthdays Today",
+      emptyMessage: "*No birthdays today!* 🌟",
+      callToAction: "*Don't forget to send your wishes!* 🎂",
+    },
+    monthly: {
+      header: "*📅 Monthly Birthday Report 📅*",
+      sectionTitle: "Birthdays This Month",
+      emptyMessage: "*No birthdays this month!* 📆",
+      callToAction: "*Mark your calendars!* 🗓️",
+    },
+    upcoming: {
+      header: "*🔮 Next Upcoming Birthday 🔮*",
+      sectionTitle: "Next Birthday",
+      emptyMessage: "*No upcoming birthdays found!* 🤷‍♂️",
+      callToAction: "*Get ready to celebrate!* 🎁",
+    },
+  };
+
+  return configs[type];
+}
+
+/**
+ * Generates a report of people whose birthdays are today
+ * @param people - The list of people
+ * @returns The birthday reports
  */
 function getBirthdayReport(people: PeopleAttributes[]): BirthdayReport[] {
   const today = new Date();
-  
-  // Build today's local MM-DD string (using local date, as the report is for "today").
   const localMonth = (today.getMonth() + 1).toString().padStart(2, "0");
   const localDay = today.getDate().toString().padStart(2, "0");
-  const todayLocal = `${localMonth}-${localDay}`; // e.g., "02-25"
+  const todayLocal = `${localMonth}-${localDay}`;
 
-  const reports = people
-    .filter((person) => {
-      if (!person.birthday) {
-        logger.debug(
-          `getBirthdayReport: Skipping ${person.name} (no birthday)`
-        );
-        return false;
-      }
-      const bd =
-        person.birthday instanceof Date
-          ? person.birthday
-          : new Date(person.birthday);
-      // Use the stored ISO date's MM-DD (which is correct as stored) for comparison.
-      const bdStr = bd.toISOString().substring(5, 10); // e.g., "02-26"
-      return bdStr === todayLocal;
-    })
-    .map((person) => ({
-      name: person.name,
-      yearsInContact: today.getFullYear() - person.yearMet,
-      birthday:
-        person.birthday instanceof Date
-          ? person.birthday
-          : new Date(person.birthday!),
-    }));
-  return reports;
+  return filterAndMapBirthdays(people, (bdStr) => bdStr === todayLocal);
 }
 
 /**
- * Generates a report of people whose birthdays fall in the current month.
- * Compares the stored birthday’s MM portion (from its ISO string) with today's local month.
- * @param people - The list of people.
- * @returns The birthday reports.
+ * Generates a report of people whose birthdays fall in the current month
+ * @param people - The list of people
+ * @returns The birthday reports ordered by date
  */
 function getMonthlyBirthdays(people: PeopleAttributes[]): BirthdayReport[] {
   const today = new Date();
-  const currentMonth = (today.getMonth() + 1).toString().padStart(2, "0"); // e.g., "02"
-  logger.debug(`getMonthlyBirthdays: Current local month: ${currentMonth}`);
+  const currentMonth = (today.getMonth() + 1).toString().padStart(2, "0");
 
-  const reports = people
-    .filter((person) => {
-      if (!person.birthday) {
-        return false;
-      }
-      const bd =
-        person.birthday instanceof Date
-          ? person.birthday
-          : new Date(person.birthday);
-      const bdMonth = bd.toISOString().substring(5, 7); // e.g., "02"
-      return bdMonth === currentMonth;
-    })
-    .map((person) => ({
-      name: person.name,
-      yearsInContact: today.getFullYear() - person.yearMet,
-      birthday:
-        person.birthday instanceof Date
-          ? person.birthday
-          : new Date(person.birthday!),
-    }));
-  return reports;
+  const reports = filterAndMapBirthdays(
+    people,
+    (bdStr) => bdStr.substring(0, 2) === currentMonth
+  );
+
+  // Sort by day of month
+  return reports.sort((a, b) => {
+    if (!a.birthday || !b.birthday) return 0;
+    return a.birthday.getDate() - b.birthday.getDate();
+  });
 }
 
 /**
- * Generates a report of people who share the next upcoming birthday.
- * Calculates a numeric candidate for each birthday based solely on the stored MM-DD.
- * If the candidate is less than today's local MMDD, it’s treated as next year.
- * @param people - The list of people.
- * @returns The birthday reports for the next birthday.
+ * Generates a report of people who share the next upcoming birthday
+ * @param people - The list of people
+ * @returns The birthday reports for the next birthday
  */
 function getUpcomingBirthdays(people: PeopleAttributes[]): BirthdayReport[] {
   const today = new Date();
-  const todayMonth = today.getMonth() + 1; // local month (1–12)
-  const todayDay = today.getDate(); // local day (1–31)
-  const todayNum = todayMonth * 100 + todayDay; // e.g., Feb 25 -> 225
-  logger.debug(`getUpcomingBirthdays: Today's numeric value: ${todayNum}`);
+  const todayMonth = today.getMonth() + 1;
+  const todayDay = today.getDate();
+  const todayNum = todayMonth * 100 + todayDay;
 
   let minCandidateNum = Infinity;
+
   for (const person of people) {
-    if (!person.birthday) {
-      continue;
-    }
+    if (!person.birthday) continue;
+
     const bd =
       person.birthday instanceof Date
         ? person.birthday
         : new Date(person.birthday);
-    const bdStr = bd.toISOString().substring(5, 10); // e.g., "02-26"
+    const bdStr = bd.toISOString().substring(5, 10);
     const [monthStr, dayStr] = bdStr.split("-");
     const month = parseInt(monthStr, 10);
     const day = parseInt(dayStr, 10);
+
     let candidateNum = month * 100 + day;
     if (candidateNum < todayNum) {
       candidateNum += 1200;
     }
+
     if (candidateNum < minCandidateNum) {
       minCandidateNum = candidateNum;
     }
   }
+
   if (minCandidateNum === Infinity) return [];
 
-  // Normalize candidate number back to an "MM-DD" string.
   const normalized =
     minCandidateNum >= 1200 + 100 ? minCandidateNum - 1200 : minCandidateNum;
   const upcomingMonth = Math.floor(normalized / 100)
@@ -258,17 +250,35 @@ function getUpcomingBirthdays(people: PeopleAttributes[]): BirthdayReport[] {
   const upcomingDay = (normalized % 100).toString().padStart(2, "0");
   const upcoming = `${upcomingMonth}-${upcomingDay}`;
 
-  const reports = people
+  return filterAndMapBirthdays(people, (bdStr) => bdStr === upcoming);
+}
+
+/**
+ * Helper function to filter and map birthdays based on a condition
+ * @param people - The list of people
+ * @param condition - Function to test if birthday matches criteria
+ * @returns The filtered and mapped birthday reports
+ */
+function filterAndMapBirthdays(
+  people: PeopleAttributes[],
+  condition: (bdStr: string) => boolean
+): BirthdayReport[] {
+  const today = new Date();
+
+  return people
     .filter((person) => {
       if (!person.birthday) {
+        logger.debug(`Skipping ${person.name} (no birthday)`);
         return false;
       }
+
       const bd =
         person.birthday instanceof Date
           ? person.birthday
           : new Date(person.birthday);
       const bdStr = bd.toISOString().substring(5, 10);
-      return bdStr === upcoming;
+
+      return condition(bdStr);
     })
     .map((person) => ({
       name: person.name,
@@ -276,10 +286,18 @@ function getUpcomingBirthdays(people: PeopleAttributes[]): BirthdayReport[] {
       birthday:
         person.birthday instanceof Date
           ? person.birthday
-          : new Date(person.birthday),
+          : new Date(person.birthday!),
     }));
-  return reports;
 }
 
-export default generateBirthdayReport;
+// Legacy function for backward compatibility
+export async function generateBirthdayReport(
+  type: string = "daily"
+): Promise<string> {
+  const reportType = type === "daily" ? "daily" : "monthly";
+  return generateBirthdayMessage(reportType as "daily" | "monthly");
+}
+
+// Export the core functions for testing
 export { getBirthdayReport, getUpcomingBirthdays, getMonthlyBirthdays };
+export default generateBirthdayReport;

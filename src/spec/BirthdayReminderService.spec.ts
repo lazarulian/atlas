@@ -2,9 +2,21 @@ import {
   getBirthdayReport,
   getMonthlyBirthdays,
   getUpcomingBirthdays,
+  getBirthdayReports,
+  generateBirthdayMessage,
 } from "../services/BirthdayReminderService";
 import { PeopleAttributes } from "../types/models/PeopleInterface";
 import { createPerson } from "../utils/ModelService";
+
+// Mock the People model
+jest.mock("../models/People", () => ({
+  People: {
+    findAll: jest.fn(),
+  },
+}));
+
+import { People } from "../models/People";
+const mockPeople = People as jest.Mocked<typeof People>;
 
 describe("Birthday Reminder Service", () => {
   const people: PeopleAttributes[] = [
@@ -40,19 +52,28 @@ describe("Birthday Reminder Service", () => {
       email: "daniel@example.com",
       location: ["Toronto", "London"],
     }),
+    createPerson({
+      id: 5,
+      name: "John Doe",
+      birthday: new Date("1988-12-25"), // Birthday: Dec 25
+      yearMet: 2020,
+      phoneNumber: "111-111-1111",
+    }),
   ];
 
-  describe("getBirthdayReport", () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
-    afterEach(() => {
-      jest.useRealTimers();
-    });
+  beforeEach(() => {
+    jest.useFakeTimers();
+    mockPeople.findAll.mockResolvedValue(people as any);
+  });
 
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.clearAllMocks();
+  });
+
+  describe("getBirthdayReport", () => {
     test("should return reports for people whose birthday is today", () => {
       // Simulate today as 2024-11-28.
-      // Expect Daenerys and Omar (whose birthday ISO substring is "11-28")
       jest.setSystemTime(new Date("2024-11-28T12:00:00Z"));
       const reports = getBirthdayReport(people);
       expect(reports).toHaveLength(2);
@@ -72,7 +93,6 @@ describe("Birthday Reminder Service", () => {
 
     test("should return report for one person with a birthday today", () => {
       // Simulate today as 2024-06-15.
-      // Expect Frank Ocean
       jest.setSystemTime(new Date("2024-06-15T12:00:00Z"));
       const reports = getBirthdayReport(people);
       expect(reports).toHaveLength(1);
@@ -95,7 +115,6 @@ describe("Birthday Reminder Service", () => {
       // Simulate today as 2023-02-28 (non-leap)
       jest.setSystemTime(new Date("2023-02-28T12:00:00Z"));
       const reports = getBirthdayReport(people);
-      // Daniel's birthday (Feb 29) should not appear on a non-leap year.
       expect(reports).not.toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: "Daniel Caesar" }),
@@ -118,29 +137,15 @@ describe("Birthday Reminder Service", () => {
   });
 
   describe("getMonthlyBirthdays", () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
-    afterEach(() => {
-      jest.useRealTimers();
-    });
-
     test("should return all birthdays in the current month", () => {
       // Simulate today as 2024-11-15.
-      // Expect all people with birthdays in November (Daenerys and Omar)
       jest.setSystemTime(new Date("2024-11-15T12:00:00Z"));
       const reports = getMonthlyBirthdays(people);
+      expect(reports).toHaveLength(2);
       expect(reports).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: "Daenerys Targaryen" }),
           expect.objectContaining({ name: "Omar Little" }),
-        ])
-      );
-      // Ensure Frank Ocean (June) and Daniel Caesar (Feb) are not included.
-      expect(reports).not.toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: "Frank Ocean" }),
-          expect.objectContaining({ name: "Daniel Caesar" }),
         ])
       );
     });
@@ -151,22 +156,19 @@ describe("Birthday Reminder Service", () => {
       const reports = getMonthlyBirthdays(people);
       expect(reports).toEqual([]);
     });
+
+    test("should return December birthdays in December", () => {
+      // Simulate today as 2024-12-15
+      jest.setSystemTime(new Date("2024-12-15T12:00:00Z"));
+      const reports = getMonthlyBirthdays(people);
+      expect(reports).toHaveLength(1);
+      expect(reports[0]).toEqual(expect.objectContaining({ name: "John Doe" }));
+    });
   });
 
   describe("getUpcomingBirthdays", () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
-    afterEach(() => {
-      jest.useRealTimers();
-    });
-
     test("should return the next upcoming birthday reports", () => {
       // Simulate today as 2024-11-27.
-      // Among our sample people:
-      // - Daenerys and Omar have birthday "11-28" which are the next upcoming (1128 candidate).
-      // - Frank Ocean (06-15) becomes 615+1200=1815; Daniel Caesar (02-29) becomes 229+1200=1429.
-      // So the minimal candidate is 1128.
       jest.setSystemTime(new Date("2024-11-27T12:00:00Z"));
       const reports = getUpcomingBirthdays(people);
       expect(reports).toHaveLength(2);
@@ -180,11 +182,6 @@ describe("Birthday Reminder Service", () => {
 
     test("should return the correct upcoming birthday when today is late in the year", () => {
       // Simulate today as 2024-12-30.
-      // Calculate candidates:
-      // - Daenerys/Omar: 11-28 => candidate 1128 < today (1230), so 1128 + 1200 = 2328.
-      // - Frank Ocean: 06-15 => candidate 615 < 1230, so 615 + 1200 = 1815.
-      // - Daniel Caesar: 02-29 => candidate 229 < 1230, so 229 + 1200 = 1429.
-      // The minimal candidate is 1429, corresponding to "02-29".
       jest.setSystemTime(new Date("2024-12-30T12:00:00Z"));
       const reports = getUpcomingBirthdays(people);
       expect(reports).toHaveLength(1);
@@ -198,6 +195,121 @@ describe("Birthday Reminder Service", () => {
     test("should return an empty array if no birthdays exist", () => {
       const reports = getUpcomingBirthdays([]);
       expect(reports).toEqual([]);
+    });
+  });
+
+  describe("getBirthdayReports", () => {
+    test("should return daily reports", async () => {
+      jest.setSystemTime(new Date("2024-11-28T12:00:00Z"));
+      const reports = await getBirthdayReports("daily");
+      expect(reports).toHaveLength(2);
+      expect(reports.map((r) => r.name)).toEqual(
+        expect.arrayContaining(["Daenerys Targaryen", "Omar Little"])
+      );
+    });
+
+    test("should return monthly reports", async () => {
+      jest.setSystemTime(new Date("2024-11-15T12:00:00Z"));
+      const reports = await getBirthdayReports("monthly");
+      expect(reports).toHaveLength(2);
+      expect(reports.map((r) => r.name)).toEqual(
+        expect.arrayContaining(["Daenerys Targaryen", "Omar Little"])
+      );
+    });
+
+    test("should return upcoming reports", async () => {
+      jest.setSystemTime(new Date("2024-11-27T12:00:00Z"));
+      const reports = await getBirthdayReports("upcoming");
+      expect(reports).toHaveLength(2);
+      expect(reports.map((r) => r.name)).toEqual(
+        expect.arrayContaining(["Daenerys Targaryen", "Omar Little"])
+      );
+    });
+
+    test("should throw error for invalid type", async () => {
+      await expect(getBirthdayReports("invalid" as any)).rejects.toThrow(
+        "Invalid report type: invalid"
+      );
+    });
+
+    test("should return empty array when no contacts found", async () => {
+      mockPeople.findAll.mockResolvedValue([]);
+      const reports = await getBirthdayReports("daily");
+      expect(reports).toEqual([]);
+    });
+  });
+
+  describe("generateBirthdayMessage", () => {
+    test("should generate daily message with birthdays", async () => {
+      jest.setSystemTime(new Date("2024-11-28T12:00:00Z"));
+      const message = await generateBirthdayMessage("daily");
+
+      expect(message).toContain("🎉 Daily Birthday Report 🎉");
+      expect(message).toContain("Birthdays Today:");
+      expect(message).toContain("Daenerys Targaryen");
+      expect(message).toContain("Omar Little");
+      expect(message).toContain("Don't forget to send your wishes!");
+      expect(message).toContain("November 28");
+    });
+
+    test("should generate empty daily message", async () => {
+      jest.setSystemTime(new Date("2024-01-01T12:00:00Z"));
+      const message = await generateBirthdayMessage("daily");
+
+      expect(message).toContain("🎉 Daily Birthday Report 🎉");
+      expect(message).toContain("No birthdays today!");
+    });
+
+    test("should generate monthly message", async () => {
+      jest.setSystemTime(new Date("2024-11-15T12:00:00Z"));
+      const message = await generateBirthdayMessage("monthly");
+
+      expect(message).toContain("📅 Monthly Birthday Report 📅");
+      expect(message).toContain("Birthdays This Month:");
+      expect(message).toContain("Mark your calendars!");
+    });
+
+    test("should generate upcoming message", async () => {
+      jest.setSystemTime(new Date("2024-11-27T12:00:00Z"));
+      const message = await generateBirthdayMessage("upcoming");
+
+      expect(message).toContain("🔮 Next Upcoming Birthday 🔮");
+      expect(message).toContain("Next Birthday:");
+      expect(message).toContain("Get ready to celebrate!");
+    });
+
+    test("should include timestamp in all messages", async () => {
+      const message = await generateBirthdayMessage("daily");
+      expect(message).toMatch(/Generated at:/);
+      expect(message).toMatch(/Report Generated:/);
+    });
+
+    test("should format years in contact correctly", async () => {
+      jest.setSystemTime(new Date("2024-06-15T12:00:00Z"));
+      const message = await generateBirthdayMessage("daily");
+
+      expect(message).toContain("Frank Ocean");
+      expect(message).toContain("Friends for 14 years"); // 2024 - 2010
+    });
+
+    test("should handle people met in current year", async () => {
+      const currentYearPerson = [
+        createPerson({
+          id: 6,
+          name: "New Friend",
+          birthday: new Date("1990-01-01"),
+          yearMet: 2024,
+          phoneNumber: "222-222-2222",
+        }),
+      ];
+
+      mockPeople.findAll.mockResolvedValue(currentYearPerson as any);
+      jest.setSystemTime(new Date("2024-01-01T12:00:00Z"));
+
+      const message = await generateBirthdayMessage("daily");
+      expect(message).toContain("New Friend");
+      // Should not show negative years or confusing text
+      expect(message).not.toContain("Friends for 0 years");
     });
   });
 });
